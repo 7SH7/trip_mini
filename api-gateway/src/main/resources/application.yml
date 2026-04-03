@@ -11,6 +11,16 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
+        - id: auth-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/auth/**
+
+        - id: oauth2-service
+          uri: lb://user-service
+          predicates:
+            - Path=/oauth2/**, /login/oauth2/**
+
         - id: user-service
           uri: lb://user-service
           predicates:
@@ -30,6 +40,9 @@ spring:
           uri: lb://payment-service
           predicates:
             - Path=/api/payments/**
+
+jwt:
+  secret: dHJpcC1zZXJ2aWNlLWp3dC1zZWNyZXQta2V5LXRoYXQtaXMtbG9uZy1lbm91Z2gtZm9yLWhtYWMtc2hhMjU2
 
 eureka:
   client:

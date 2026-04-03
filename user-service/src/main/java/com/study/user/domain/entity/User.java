@@ -24,23 +24,41 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AuthProvider provider;
+
+    private String providerId;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     @Builder
-    public User(String email, String name, String password) {
+    public User(String email, String name, String password, Role role, AuthProvider provider, String providerId) {
         this.email = email;
         this.name = name;
         this.password = password;
+        this.role = role != null ? role : Role.USER;
+        this.provider = provider != null ? provider : AuthProvider.LOCAL;
+        this.providerId = providerId;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
     public void updateName(String name) {
         this.name = name;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateOAuth2Info(String name, String providerId) {
+        this.name = name;
+        this.providerId = providerId;
         this.updatedAt = LocalDateTime.now();
     }
 }
