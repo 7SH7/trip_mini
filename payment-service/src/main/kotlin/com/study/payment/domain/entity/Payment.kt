@@ -18,6 +18,7 @@ class Payment(
     var status: PaymentStatus = PaymentStatus.PENDING,
 
     var paidAt: LocalDateTime? = null,
+    var refundRetryCount: Int = 0,
     val createdAt: LocalDateTime = LocalDateTime.now(),
     var updatedAt: LocalDateTime = LocalDateTime.now(),
 
@@ -27,4 +28,14 @@ class Payment(
     fun complete() { status = PaymentStatus.COMPLETED; paidAt = LocalDateTime.now(); updatedAt = LocalDateTime.now() }
     fun fail() { status = PaymentStatus.FAILED; updatedAt = LocalDateTime.now() }
     fun refund() { status = PaymentStatus.REFUNDED; updatedAt = LocalDateTime.now() }
+
+    fun incrementRetry(): Boolean {
+        refundRetryCount++
+        return refundRetryCount <= MAX_RETRY
+
+    }
+
+    companion object {
+        const val MAX_RETRY = 3
+    }
 }

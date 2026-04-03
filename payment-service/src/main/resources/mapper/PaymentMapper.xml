@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.study.payment.infrastructure.mybatis.PaymentMapper">
+
+    <select id="getDailyRevenue" resultType="map">
+        SELECT DATE(paid_at) as date, SUM(amount) as total
+        FROM payments
+        WHERE status = 'COMPLETED'
+        AND paid_at >= #{startDate}
+        GROUP BY DATE(paid_at)
+        ORDER BY date DESC
+    </select>
+
+    <select id="getPaymentCountByStatus" resultType="map">
+        SELECT status, COUNT(*) as count
+        FROM payments
+        WHERE user_id = #{userId}
+        GROUP BY status
+    </select>
+
+</mapper>

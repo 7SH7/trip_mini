@@ -9,11 +9,12 @@ import com.study.chat.domain.entity.MessageType
 import com.study.chat.domain.repository.ChatMessageRepository
 import com.study.chat.domain.repository.ChatRoomRepository
 import com.study.chat.infrastructure.redis.OnlineUserTracker
+import com.study.common.event.ChatMessageEvent
 import com.study.common.exception.EntityNotFoundException
+import com.study.common.outbox.OutboxEventPublisher
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
-import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -23,7 +24,7 @@ class ChatService(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatMessageRepository: ChatMessageRepository,
     private val onlineUserTracker: OnlineUserTracker,
-    private val kafkaTemplate: KafkaTemplate<String, String>,
+    private val outboxEventPublisher: OutboxEventPublisher,
     @Value("\${chat.room-radius-km}") private val defaultRadius: Double
 ) {
     @Transactional
@@ -61,7 +62,7 @@ class ChatService(
             ChatMessage(chatRoomId = roomId, userId = userId, content = content, type = type)
         )
         // Publish to Kafka for notification-service
-        kafkaTemplate.send("chat-events", """{"chatRoomId":$roomId,"userId":$userId,"content":"$content"}""")
+        outboxEventPublisher.publish("chat-events", ChatMessageEvent(roomId, userId, content))
         return ChatMessageResponse.from(message)
     }
 

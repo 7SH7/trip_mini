@@ -54,6 +54,15 @@ class EventConsumers(
                     referenceId = event.paymentId.toString()
                 )
             }
+            is PaymentFailedEvent -> {
+                notificationService.createAndSend(
+                    userId = event.userId,
+                    title = "결제 실패",
+                    content = "결제가 실패하여 예약이 자동 취소되었습니다. 사유: ${event.reason}",
+                    type = NotificationType.PAYMENT_COMPLETED,
+                    referenceId = event.bookingId.toString()
+                )
+            }
             is PaymentRefundedEvent -> {
                 notificationService.createAndSend(
                     userId = event.userId,
@@ -63,6 +72,58 @@ class EventConsumers(
                     referenceId = event.paymentId.toString()
                 )
             }
+        }
+    }
+
+    @KafkaListener(topics = ["chat-events"], groupId = "notification-service")
+    fun handleChatEvent(message: String) {
+        try {
+            val event = objectMapper.readValue(message, DomainEvent::class.java)
+            if (event is ChatMessageEvent) {
+                log.info("Chat message from user {} in room {}", event.senderId, event.chatRoomId)
+                // TODO: check if recipient is offline, then send notification
+                // For now, we could notify all room members who are offline
+                // This would require knowing room members - skip for now, just log
+            }
+        } catch (e: Exception) {
+            log.warn("Failed to process chat event: {}", e.message)
+        }
+    }
+
+    @KafkaListener(topics = ["user-events"], groupId = "notification-service")
+    fun handleUserEvent(message: String) {
+        try {
+            val event = objectMapper.readValue(message, DomainEvent::class.java)
+            if (event is UserCreatedEvent) {
+                log.info("New user created: {}", event.userId)
+                notificationService.createAndSend(
+                    userId = event.userId,
+                    title = "환영합니다!",
+                    content = "Trip 서비스에 가입해주셔서 감사합니다. 여행을 계획해보세요!",
+                    type = NotificationType.SYSTEM
+                )
+            }
+        } catch (e: Exception) {
+            log.warn("Failed to process user event: {}", e.message)
+        }
+    }
+
+    @KafkaListener(topics = ["trip-events"], groupId = "notification-service")
+    fun handleTripEvent(message: String) {
+        try {
+            val event = objectMapper.readValue(message, DomainEvent::class.java)
+            if (event is TripCreatedEvent) {
+                log.info("New trip created: {} by user {}", event.tripId, event.userId)
+                notificationService.createAndSend(
+                    userId = event.userId,
+                    title = "여행 생성 완료",
+                    content = "\"${event.title}\" 여행이 생성되었습니다. 숙소를 검색해보세요!",
+                    type = NotificationType.SYSTEM,
+                    referenceId = event.tripId.toString()
+                )
+            }
+        } catch (e: Exception) {
+            log.warn("Failed to process trip event: {}", e.message)
         }
     }
 }

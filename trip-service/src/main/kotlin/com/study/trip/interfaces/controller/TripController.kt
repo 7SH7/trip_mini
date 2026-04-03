@@ -25,4 +25,19 @@ class TripController(
     @GetMapping("/my")
     fun getMyTrips(@RequestHeader("X-User-Id") userId: Long): ApiResponse<List<TripResponse>> =
         ApiResponse.ok(tripService.getTripsByUser(userId))
+
+    @GetMapping("/search")
+    fun searchTrips(
+        @RequestHeader("X-User-Id") userId: Long,
+        @RequestParam(required = false) status: String?,
+        @RequestParam(required = false) keyword: String?,
+        @RequestParam(required = false) startDateFrom: String?,
+        @RequestParam(required = false) startDateTo: String?
+    ): ApiResponse<List<TripResponse>> = ApiResponse.ok(tripService.searchTrips(
+        userId = userId,
+        status = status?.let { com.study.trip.domain.entity.TripStatus.valueOf(it) },
+        keyword = keyword,
+        startDateFrom = startDateFrom?.let { java.time.LocalDate.parse(it) },
+        startDateTo = startDateTo?.let { java.time.LocalDate.parse(it) }
+    ))
 }

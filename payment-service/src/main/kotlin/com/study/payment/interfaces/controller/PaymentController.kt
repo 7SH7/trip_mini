@@ -28,4 +28,10 @@ class PaymentController(private val paymentService: PaymentService) {
     @PatchMapping("/{id}/refund")
     fun refundPayment(@PathVariable id: Long): ApiResponse<PaymentResponse> =
         ApiResponse.ok(paymentService.refundPayment(id))
+
+    @PatchMapping("/{id}/fail")
+    fun failPayment(
+        @PathVariable id: Long,
+        @RequestParam(defaultValue = "Payment failed") reason: String
+    ): ApiResponse<PaymentResponse> = ApiResponse.ok(paymentService.failPayment(id, reason))
 }

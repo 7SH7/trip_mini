@@ -6,6 +6,7 @@ import com.study.common.outbox.OutboxEventPublisher
 import com.study.trip.application.dto.CreateTripRequest
 import com.study.trip.application.dto.TripResponse
 import com.study.trip.domain.entity.Trip
+import com.study.trip.domain.repository.TripQueryRepository
 import com.study.trip.domain.repository.TripRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class TripService(
     private val tripRepository: TripRepository,
+    private val tripQueryRepository: TripQueryRepository,
     private val outboxEventPublisher: OutboxEventPublisher
 ) {
     @Transactional
@@ -36,4 +38,11 @@ class TripService(
 
     fun getTripsByUser(userId: Long): List<TripResponse> =
         tripRepository.findByUserId(userId).map { TripResponse.from(it) }
+
+    fun searchTrips(
+        userId: Long?, status: com.study.trip.domain.entity.TripStatus?,
+        keyword: String?, startDateFrom: java.time.LocalDate?, startDateTo: java.time.LocalDate?
+    ): List<TripResponse> =
+        tripQueryRepository.searchTrips(userId, status, keyword, startDateFrom, startDateTo)
+            .map { TripResponse.from(it) }
 }

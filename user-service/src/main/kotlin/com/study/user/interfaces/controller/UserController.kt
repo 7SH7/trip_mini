@@ -19,4 +19,8 @@ class UserController(
     @GetMapping("/{id}")
     fun getUser(@PathVariable id: Long): ApiResponse<UserResponse> =
         ApiResponse.ok(userService.getUser(id))
+
+    @GetMapping("/me")
+    fun getMe(@RequestHeader("X-User-Id") userId: Long): ApiResponse<UserResponse> =
+        ApiResponse.ok(userService.getUser(userId))
 }

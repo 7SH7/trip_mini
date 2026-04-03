@@ -13,6 +13,10 @@ const AuthContainer = styled(Paper)`
   padding: 2.5rem;
 `
 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id'
+const KAKAO_CLIENT_ID = import.meta.env.VITE_KAKAO_CLIENT_ID || 'your-kakao-client-id'
+const REDIRECT_URI = `${window.location.origin}/oauth/callback`
+
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -33,6 +37,18 @@ export default function LoginPage() {
     }
   }
 
+  const handleGoogleLogin = () => {
+    localStorage.setItem('oauth_provider', 'google')
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=email%20profile&access_type=offline`
+    window.location.href = url
+  }
+
+  const handleKakaoLogin = () => {
+    localStorage.setItem('oauth_provider', 'kakao')
+    const url = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code`
+    window.location.href = url
+  }
+
   return (
     <AuthContainer elevation={0}>
       <Typography variant="h5" fontWeight={600} gutterBottom>로그인</Typography>
@@ -46,8 +62,13 @@ export default function LoginPage() {
       </Box>
       <Divider sx={{ my: 2 }}>또는</Divider>
       <Stack direction="row" spacing={1}>
-        <Button variant="outlined" fullWidth startIcon={<Google />}>Google</Button>
-        <Button variant="outlined" fullWidth sx={{ bgcolor: '#FEE500', color: '#000', borderColor: '#FEE500' }}>Kakao</Button>
+        <Button variant="outlined" fullWidth startIcon={<Google />} onClick={handleGoogleLogin}>
+          Google
+        </Button>
+        <Button variant="outlined" fullWidth onClick={handleKakaoLogin}
+          sx={{ bgcolor: '#FEE500', color: '#000', borderColor: '#FEE500', '&:hover': { bgcolor: '#FDD835' } }}>
+          Kakao
+        </Button>
       </Stack>
       <Typography variant="body2" textAlign="center" sx={{ mt: 2 }}>
         계정이 없으신가요? <Link to="/register">회원가입</Link>

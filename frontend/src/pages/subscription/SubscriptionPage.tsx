@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Paper, Typography, Box, Button, Chip, Divider, Stack, Card, CardContent, Alert } from '@mui/material'
 import { Videocam, ShoppingCart, History } from '@mui/icons-material'
 import { subscriptionApi } from '../../api/subscriptions'
+import { requestPayment } from '../../hooks/usePortone'
 
 export default function SubscriptionPage() {
   const queryClient = useQueryClient()
+  const [paymentError, setPaymentError] = useState('')
 
   const { data: subscription } = useQuery({
     queryKey: ['subscription'],
@@ -20,6 +23,24 @@ export default function SubscriptionPage() {
     mutationFn: () => subscriptionApi.useVideoCall(),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['subscription'] }),
   })
+
+  const purchaseMutation = useMutation({
+    mutationFn: async () => {
+      const paymentId = await requestPayment(5000, '영상통화 크레딧 10회')
+      return subscriptionApi.purchaseCredits({ portonePaymentId: paymentId })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscription'] })
+      queryClient.invalidateQueries({ queryKey: ['subscription', 'history'] })
+      setPaymentError('')
+    },
+    onError: (err: Error) => setPaymentError(err.message),
+  })
+
+  const handlePurchase = () => {
+    setPaymentError('')
+    purchaseMutation.mutate()
+  }
 
   return (
     <Paper sx={{ p: 3 }} elevation={0}>
@@ -53,8 +74,9 @@ export default function SubscriptionPage() {
           영상통화 사용 (1크레딧)
         </Button>
         <Button variant="outlined" startIcon={<ShoppingCart />}
-          onClick={() => alert('포트원 결제 연동 후 사용 가능합니다.\n10회 크레딧 / 5,000원')}>
-          크레딧 충전 (10회 / 5,000원)
+          onClick={handlePurchase}
+          disabled={purchaseMutation.isPending}>
+          {purchaseMutation.isPending ? '결제 중...' : '크레딧 충전 (10회 / 5,000원)'}
         </Button>
       </Stack>
 
@@ -63,6 +85,9 @@ export default function SubscriptionPage() {
           {useCallMutation.data?.data.data?.message}
         </Alert>
       )}
+
+      {paymentError && <Alert severity="error" sx={{ mb: 2 }}>{paymentError}</Alert>}
+      {purchaseMutation.isSuccess && <Alert severity="success" sx={{ mb: 2 }}>크레딧 충전이 완료되었습니다!</Alert>}
 
       <Divider sx={{ my: 3 }} />
 

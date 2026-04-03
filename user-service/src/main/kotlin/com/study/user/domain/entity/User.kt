@@ -1,11 +1,13 @@
 package com.study.user.domain.entity
 
 import jakarta.persistence.*
+import jakarta.persistence.Convert
 import java.time.LocalDateTime
 
 @Entity
 @Table(name = "users")
 class User(
+    @Convert(converter = com.study.common.security.EncryptedStringConverter::class)
     @Column(nullable = false, unique = true)
     val email: String,
 

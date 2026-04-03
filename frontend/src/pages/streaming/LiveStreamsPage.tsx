@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Paper, Typography, Box, Button, TextField, Card, CardContent, Chip, Stack, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'
 import { LiveTv, Add, PlayArrow, ContentCopy } from '@mui/icons-material'
+import HlsPlayer from '../../components/common/HlsPlayer'
 import { mediaApi } from '../../api/media'
 import type { LiveStreamResponse } from '../../types'
 
@@ -53,9 +54,9 @@ export default function LiveStreamsPage() {
           )}
         </Box>
         {stream.hlsPlaybackUrl && stream.status === 'LIVE' && (
-          <Button variant="outlined" size="small" href={stream.hlsPlaybackUrl} target="_blank">
-            시청하기
-          </Button>
+          <Box sx={{ mt: 1 }}>
+            <HlsPlayer src={stream.hlsPlaybackUrl} />
+          </Box>
         )}
       </CardContent>
     </Card>

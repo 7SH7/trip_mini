@@ -1,6 +1,7 @@
 package com.study.payment.application.service
 
 import com.study.common.event.PaymentCompletedEvent
+import com.study.common.event.PaymentFailedEvent
 import com.study.common.event.PaymentRefundedEvent
 import com.study.common.exception.EntityNotFoundException
 import com.study.common.outbox.OutboxEventPublisher
@@ -43,6 +44,16 @@ class PaymentService(
         val payment = paymentRepository.findById(id).orElseThrow { EntityNotFoundException("Payment", id) }
         payment.refund()
         outboxEventPublisher.publish("payment-events", PaymentRefundedEvent(payment.id, payment.bookingId, payment.userId, payment.amount))
+        return PaymentResponse.from(payment)
+    }
+
+    @Transactional
+    fun failPayment(id: Long, reason: String): PaymentResponse {
+        val payment = paymentRepository.findById(id)
+            .orElseThrow { EntityNotFoundException("Payment", id) }
+        payment.fail()
+        outboxEventPublisher.publish("payment-events",
+            PaymentFailedEvent(payment.id, payment.bookingId, payment.userId, reason))
         return PaymentResponse.from(payment)
     }
 }

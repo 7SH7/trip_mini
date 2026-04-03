@@ -1,5 +1,6 @@
 package com.study.feed.infrastructure.storage
 
+import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -9,6 +10,9 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import java.net.URI
 import java.util.UUID
@@ -30,6 +34,19 @@ class S3StorageClient(
             .region(Region.of(region))
             .forcePathStyle(true)
             .build()
+    }
+
+    @PostConstruct
+    fun initBucket() {
+        try {
+            s3Client.headBucket(HeadBucketRequest.builder().bucket(bucket).build())
+            log.info("S3 bucket '{}' already exists", bucket)
+        } catch (e: NoSuchBucketException) {
+            s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build())
+            log.info("Created S3 bucket '{}'", bucket)
+        } catch (e: Exception) {
+            log.warn("Could not check/create S3 bucket '{}': {}", bucket, e.message)
+        }
     }
 
     fun upload(file: MultipartFile): String {

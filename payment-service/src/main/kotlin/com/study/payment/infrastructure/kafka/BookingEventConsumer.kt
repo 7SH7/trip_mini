@@ -5,6 +5,7 @@ import com.study.common.event.BookingCancelledEvent
 import com.study.common.event.DomainEvent
 import com.study.common.event.PaymentRefundedEvent
 import com.study.common.outbox.OutboxEventPublisher
+import com.study.payment.domain.entity.PaymentStatus
 import com.study.payment.domain.repository.PaymentRepository
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -26,10 +27,25 @@ class BookingEventConsumer(
         if (event is BookingCancelledEvent) {
             log.info("Booking {} cancelled, processing refund", event.bookingId)
             paymentRepository.findByBookingId(event.bookingId).ifPresent { payment ->
-                payment.refund()
-                paymentRepository.save(payment)
-                outboxEventPublisher.publish("payment-events",
-                    PaymentRefundedEvent(payment.id, payment.bookingId, payment.userId, payment.amount))
+                if (payment.status == PaymentStatus.COMPLETED) {
+                    try {
+                        payment.refund()
+                        paymentRepository.save(payment)
+                        outboxEventPublisher.publish("payment-events",
+                            PaymentRefundedEvent(payment.id, payment.bookingId, payment.userId, payment.amount))
+                        log.info("Payment {} refunded for booking {}", payment.id, event.bookingId)
+                    } catch (e: Exception) {
+                        if (payment.incrementRetry()) {
+                            paymentRepository.save(payment)
+                            log.warn("Refund retry {}/{} for payment {}", payment.refundRetryCount, 3, payment.id)
+                            throw e // re-throw to trigger Kafka retry
+                        } else {
+                            payment.status = PaymentStatus.FAILED
+                            paymentRepository.save(payment)
+                            log.error("Refund failed after {} retries for payment {}", payment.refundRetryCount, payment.id)
+                        }
+                    }
+                }
             }
         }
     }

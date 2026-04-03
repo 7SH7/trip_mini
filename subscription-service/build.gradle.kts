@@ -16,4 +16,9 @@ dependencies {
     // QueryDSL
     implementation("com.querydsl:querydsl-jpa:5.1.0:jakarta")
     kapt("com.querydsl:querydsl-apt:5.1.0:jakarta")
+
+    // gRPC
+    implementation(project(":proto"))
+    implementation("io.grpc:grpc-netty-shaded:1.68.0")
+    implementation("net.devh:grpc-server-spring-boot-starter:3.1.0.RELEASE")
 }

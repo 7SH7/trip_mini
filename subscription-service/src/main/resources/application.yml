@@ -36,6 +36,10 @@ portone:
   api-secret: ${PORTONE_API_SECRET:test-secret}
   store-id: ${PORTONE_STORE_ID:test-store}
 
+grpc:
+  server:
+    port: 9086
+
 eureka:
   client:
     service-url:

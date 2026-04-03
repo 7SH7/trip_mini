@@ -4,8 +4,11 @@ import { useQuery } from '@tanstack/react-query'
 import { Paper, Typography, Box, TextField, IconButton, Stack, Avatar, Chip } from '@mui/material'
 import { Send, People } from '@mui/icons-material'
 import styled from 'styled-components'
+import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
 import { chatApi } from '../../api/chat'
 import type { ChatMessageResponse } from '../../types'
+import { useAppSelector } from '../../store/hooks'
 
 const MessagesContainer = styled.div`
   height: 500px;
@@ -30,7 +33,9 @@ export default function ChatRoomPage() {
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState<ChatMessageResponse[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const currentUserId = 1 // TODO: get from Redux
+  const stompClientRef = useRef<Client | null>(null)
+  const { user } = useAppSelector(state => state.auth)
+  const currentUserId = user?.id ?? 0
 
   const { data: room } = useQuery({
     queryKey: ['chatRoom', roomId],
@@ -45,39 +50,54 @@ export default function ChatRoomPage() {
     refetchInterval: 5000,
   })
 
-  useQuery({
-    queryKey: ['chatMessages', roomId],
-    queryFn: () => chatApi.getMessages(Number(roomId)).then(r => {
-      setMessages(r.data.data?.content?.reverse() || [])
-      return r.data.data
-    }),
-    enabled: !!roomId,
-  })
-
+  // Load message history
   useEffect(() => {
     if (roomId) {
-      chatApi.joinRoom(Number(roomId))
-      return () => { chatApi.leaveRoom(Number(roomId)) }
+      chatApi.getMessages(Number(roomId)).then(r => {
+        setMessages(r.data.data?.content?.reverse() || [])
+      })
     }
   }, [roomId])
 
+  // Connect WebSocket
+  useEffect(() => {
+    if (!roomId) return
+
+    chatApi.joinRoom(Number(roomId))
+
+    const client = new Client({
+      webSocketFactory: () => new SockJS('http://localhost:8089/ws/chat'),
+      reconnectDelay: 5000,
+      onConnect: () => {
+        client.subscribe(`/topic/chat/${roomId}`, (msg) => {
+          const chatMsg: ChatMessageResponse = JSON.parse(msg.body)
+          setMessages(prev => [...prev, chatMsg])
+        })
+      },
+    })
+
+    client.activate()
+    stompClientRef.current = client
+
+    return () => {
+      chatApi.leaveRoom(Number(roomId))
+      client.deactivate()
+    }
+  }, [roomId])
+
+  // Auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
   const handleSend = () => {
-    if (!message.trim()) return
-    // In a real app, this would go through WebSocket
-    // For now, add locally and it would be broadcast via STOMP
-    const newMsg: ChatMessageResponse = {
-      id: Date.now(),
-      chatRoomId: Number(roomId),
-      userId: currentUserId,
-      content: message,
-      type: 'TEXT',
-      sentAt: new Date().toISOString(),
-    }
-    setMessages(prev => [...prev, newMsg])
+    if (!message.trim() || !stompClientRef.current?.connected) return
+
+    stompClientRef.current.publish({
+      destination: `/app/chat/${roomId}`,
+      headers: { 'X-User-Id': String(currentUserId) },
+      body: JSON.stringify({ content: message, type: 'TEXT' }),
+    })
     setMessage('')
   }
 

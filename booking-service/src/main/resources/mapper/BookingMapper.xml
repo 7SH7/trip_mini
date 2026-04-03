@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.study.booking.infrastructure.mybatis.BookingMapper">
+
+    <select id="getBookingCountByStatus" resultType="map">
+        SELECT status, COUNT(*) as count
+        FROM bookings
+        WHERE user_id = #{userId}
+        GROUP BY status
+    </select>
+
+    <select id="getMostBookedTrips" resultType="map">
+        SELECT trip_id, COUNT(*) as booking_count
+        FROM bookings
+        WHERE status != 'CANCELLED'
+        GROUP BY trip_id
+        ORDER BY booking_count DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

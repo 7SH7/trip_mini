@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package com.study.grpc;
+
+option java_multiple_files = true;
+option java_package = "com.study.grpc.subscription";
+
+service SubscriptionGrpcService {
+  rpc CheckCredits (CheckCreditsRequest) returns (CheckCreditsResponse);
+  rpc UseVideoCall (UseVideoCallRequest) returns (UseVideoCallResponse);
+}
+
+message CheckCreditsRequest {
+  int64 user_id = 1;
+}
+
+message CheckCreditsResponse {
+  bool has_credits = 1;
+  int32 remaining_credits = 2;
+}
+
+message UseVideoCallRequest {
+  int64 user_id = 1;
+}
+
+message UseVideoCallResponse {
+  bool success = 1;
+  int32 remaining_credits = 2;
+  string message = 3;
+}
