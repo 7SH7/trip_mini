@@ -1,0 +1,11 @@
+package com.study.booking.domain.repository;
+
+import com.study.booking.domain.entity.Booking;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface BookingRepository extends JpaRepository<Booking, Long> {
+    List<Booking> findByUserId(Long userId);
+    List<Booking> findByTripId(Long tripId);
+}
