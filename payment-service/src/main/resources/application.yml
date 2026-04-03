@@ -28,6 +28,10 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
+internal:
+  auth:
+    secret: dHJpcC1pbnRlcm5hbC1zZXJ2aWNlLWF1dGgtc2VjcmV0LWtleQ==
+
 eureka:
   client:
     service-url:
