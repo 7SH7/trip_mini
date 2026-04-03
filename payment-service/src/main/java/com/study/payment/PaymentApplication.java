@@ -3,7 +3,7 @@ package com.study.payment;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.study.payment", "com.study.common"})
 public class PaymentApplication {
 
     public static void main(String[] args) {

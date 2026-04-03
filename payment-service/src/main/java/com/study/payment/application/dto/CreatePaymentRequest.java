@@ -9,6 +9,5 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class CreatePaymentRequest {
     private Long bookingId;
-    private Long userId;
     private BigDecimal amount;
 }

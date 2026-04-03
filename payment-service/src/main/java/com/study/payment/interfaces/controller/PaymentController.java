@@ -15,8 +15,9 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping
-    public ApiResponse<PaymentResponse> createPayment(@RequestBody CreatePaymentRequest request) {
-        return ApiResponse.created(paymentService.createPayment(request));
+    public ApiResponse<PaymentResponse> createPayment(@RequestHeader("X-User-Id") Long userId,
+                                                      @RequestBody CreatePaymentRequest request) {
+        return ApiResponse.created(paymentService.createPayment(userId, request));
     }
 
     @GetMapping("/{id}")

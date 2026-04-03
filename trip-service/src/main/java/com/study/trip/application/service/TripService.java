@@ -20,9 +20,9 @@ public class TripService {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Transactional
-    public TripResponse createTrip(CreateTripRequest request) {
+    public TripResponse createTrip(Long userId, CreateTripRequest request) {
         Trip trip = Trip.builder()
-                .userId(request.getUserId())
+                .userId(userId)
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .startDate(request.getStartDate())

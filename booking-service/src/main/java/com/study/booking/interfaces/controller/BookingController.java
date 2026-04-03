@@ -17,8 +17,9 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
-    public ApiResponse<BookingResponse> createBooking(@RequestBody CreateBookingRequest request) {
-        return ApiResponse.created(bookingService.createBooking(request));
+    public ApiResponse<BookingResponse> createBooking(@RequestHeader("X-User-Id") Long userId,
+                                                      @RequestBody CreateBookingRequest request) {
+        return ApiResponse.created(bookingService.createBooking(userId, request));
     }
 
     @GetMapping("/{id}")
@@ -26,8 +27,8 @@ public class BookingController {
         return ApiResponse.ok(bookingService.getBooking(id));
     }
 
-    @GetMapping("/user/{userId}")
-    public ApiResponse<List<BookingResponse>> getBookingsByUser(@PathVariable Long userId) {
+    @GetMapping("/my")
+    public ApiResponse<List<BookingResponse>> getMyBookings(@RequestHeader("X-User-Id") Long userId) {
         return ApiResponse.ok(bookingService.getBookingsByUser(userId));
     }
 

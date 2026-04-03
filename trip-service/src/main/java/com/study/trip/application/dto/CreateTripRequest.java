@@ -8,7 +8,6 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor
 public class CreateTripRequest {
-    private Long userId;
     private String title;
     private String description;
     private LocalDate startDate;

@@ -18,10 +18,10 @@ public class PaymentService {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Transactional
-    public PaymentResponse createPayment(CreatePaymentRequest request) {
+    public PaymentResponse createPayment(Long userId, CreatePaymentRequest request) {
         Payment payment = Payment.builder()
                 .bookingId(request.getBookingId())
-                .userId(request.getUserId())
+                .userId(userId)
                 .amount(request.getAmount())
                 .build();
         Payment saved = paymentRepository.save(payment);

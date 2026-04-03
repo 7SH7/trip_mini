@@ -17,8 +17,9 @@ public class TripController {
     private final TripService tripService;
 
     @PostMapping
-    public ApiResponse<TripResponse> createTrip(@RequestBody CreateTripRequest request) {
-        return ApiResponse.created(tripService.createTrip(request));
+    public ApiResponse<TripResponse> createTrip(@RequestHeader("X-User-Id") Long userId,
+                                                @RequestBody CreateTripRequest request) {
+        return ApiResponse.created(tripService.createTrip(userId, request));
     }
 
     @GetMapping("/{id}")
@@ -26,8 +27,8 @@ public class TripController {
         return ApiResponse.ok(tripService.getTrip(id));
     }
 
-    @GetMapping("/user/{userId}")
-    public ApiResponse<List<TripResponse>> getTripsByUser(@PathVariable Long userId) {
+    @GetMapping("/my")
+    public ApiResponse<List<TripResponse>> getMyTrips(@RequestHeader("X-User-Id") Long userId) {
         return ApiResponse.ok(tripService.getTripsByUser(userId));
     }
 }

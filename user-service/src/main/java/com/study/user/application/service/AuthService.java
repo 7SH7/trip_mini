@@ -8,6 +8,8 @@ import com.study.user.domain.entity.Role;
 import com.study.user.domain.entity.User;
 import com.study.user.domain.repository.UserRepository;
 import com.study.user.infrastructure.security.JwtTokenProvider;
+import com.study.user.infrastructure.security.TokenRedisService;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final TokenRedisService tokenRedisService;
 
     @Transactional
     public TokenResponse register(RegisterRequest request) {
@@ -37,9 +40,7 @@ public class AuthService {
                 .build();
         User saved = userRepository.save(user);
 
-        String accessToken = jwtTokenProvider.createAccessToken(saved.getId(), saved.getEmail(), saved.getRole().name());
-        String refreshToken = jwtTokenProvider.createRefreshToken(saved.getId());
-        return new TokenResponse(accessToken, refreshToken);
+        return issueAndStoreTokens(saved);
     }
 
     public TokenResponse login(LoginRequest request) {
@@ -50,9 +51,7 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
-        String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole().name());
-        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
-        return new TokenResponse(accessToken, refreshToken);
+        return issueAndStoreTokens(user);
     }
 
     public TokenResponse refresh(String refreshToken) {
@@ -61,11 +60,29 @@ public class AuthService {
         }
 
         Long userId = jwtTokenProvider.getUserId(refreshToken);
+
+        String storedToken = tokenRedisService.getRefreshToken(userId);
+        if (storedToken == null || !storedToken.equals(refreshToken)) {
+            throw new IllegalArgumentException("Refresh token not found or revoked");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        String newAccessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole().name());
-        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getId());
-        return new TokenResponse(newAccessToken, newRefreshToken);
+        return issueAndStoreTokens(user);
+    }
+
+    public void logout(String accessToken, Long userId) {
+        Claims claims = jwtTokenProvider.parseToken(accessToken);
+        long remainingMs = claims.getExpiration().getTime() - System.currentTimeMillis();
+        tokenRedisService.blacklistAccessToken(accessToken, remainingMs);
+        tokenRedisService.deleteRefreshToken(userId);
+    }
+
+    public TokenResponse issueAndStoreTokens(User user) {
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole().name());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+        tokenRedisService.saveRefreshToken(user.getId(), refreshToken, 604800000L);
+        return new TokenResponse(accessToken, refreshToken);
     }
 }

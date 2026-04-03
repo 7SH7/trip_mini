@@ -8,6 +8,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,15 +27,21 @@ import java.util.List;
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     private final SecretKey key;
+    private final ReactiveStringRedisTemplate redisTemplate;
 
+    private static final String BLACKLIST_PREFIX = "blacklist:";
     private static final List<String> WHITELIST = List.of(
-            "/api/auth/",
-            "/oauth2/",
-            "/login/oauth2/"
+            "/api/auth/register",
+            "/api/auth/login",
+            "/api/auth/refresh",
+            "/api/auth/google",
+            "/api/auth/kakao"
     );
 
-    public JwtAuthenticationFilter(@Value("${jwt.secret}") String secret) {
+    public JwtAuthenticationFilter(@Value("${jwt.secret}") String secret,
+                                   ReactiveStringRedisTemplate redisTemplate) {
         this.key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -53,32 +60,39 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
         String token = authHeader.substring(7);
 
+        Claims claims;
         try {
-            Claims claims = Jwts.parser()
+            claims = Jwts.parser()
                     .verifyWith(key)
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
-
-            String userId = claims.getSubject();
-            String email = claims.get("email", String.class);
-            String role = claims.get("role", String.class);
-
-            ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-                    .header("X-User-Id", userId)
-                    .header("X-User-Email", email)
-                    .header("X-User-Role", role)
-                    .build();
-
-            return chain.filter(exchange.mutate().request(mutatedRequest).build());
-
         } catch (Exception e) {
             return onError(exchange, "Invalid or expired token");
         }
+
+        return redisTemplate.hasKey(BLACKLIST_PREFIX + token)
+                .flatMap(isBlacklisted -> {
+                    if (Boolean.TRUE.equals(isBlacklisted)) {
+                        return onError(exchange, "Token has been revoked");
+                    }
+
+                    String userId = claims.getSubject();
+                    String email = claims.get("email", String.class);
+                    String role = claims.get("role", String.class);
+
+                    ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+                            .header("X-User-Id", userId)
+                            .header("X-User-Email", email)
+                            .header("X-User-Role", role)
+                            .build();
+
+                    return chain.filter(exchange.mutate().request(mutatedRequest).build());
+                });
     }
 
     private boolean isWhitelisted(String path) {
-        return WHITELIST.stream().anyMatch(path::startsWith);
+        return WHITELIST.stream().anyMatch(path::equals);
     }
 
     private Mono<Void> onError(ServerWebExchange exchange, String message) {

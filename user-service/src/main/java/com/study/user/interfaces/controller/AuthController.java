@@ -33,6 +33,14 @@ public class AuthController {
         return ApiResponse.ok(authService.refresh(refreshToken));
     }
 
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(@RequestHeader("Authorization") String authHeader,
+                                    @RequestHeader("X-User-Id") String userId) {
+        String accessToken = authHeader.substring(7);
+        authService.logout(accessToken, Long.valueOf(userId));
+        return ApiResponse.ok(null);
+    }
+
     @PostMapping("/google")
     public ApiResponse<TokenResponse> googleLogin(@RequestBody OAuth2LoginRequest request) {
         return ApiResponse.ok(oAuth2Service.loginWithGoogle(request.getAccessToken()));

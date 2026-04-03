@@ -6,6 +6,7 @@ import com.study.user.domain.entity.Role;
 import com.study.user.domain.entity.User;
 import com.study.user.domain.repository.UserRepository;
 import com.study.user.infrastructure.security.JwtTokenProvider;
+import com.study.user.infrastructure.security.TokenRedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,8 @@ public class OAuth2Service {
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final TokenRedisService tokenRedisService;
+    @org.springframework.beans.factory.annotation.Qualifier("oAuth2RestClient")
     private final RestClient restClient;
 
     @Transactional
@@ -36,7 +39,7 @@ public class OAuth2Service {
         String providerId = (String) userInfo.get("sub");
 
         User user = findOrCreateOAuth2User(email, name, AuthProvider.GOOGLE, providerId);
-        return issueTokens(user);
+        return issueAndStoreTokens(user);
     }
 
     @Transactional
@@ -55,7 +58,7 @@ public class OAuth2Service {
         String providerId = String.valueOf(userInfo.get("id"));
 
         User user = findOrCreateOAuth2User(email, name, AuthProvider.KAKAO, providerId);
-        return issueTokens(user);
+        return issueAndStoreTokens(user);
     }
 
     private User findOrCreateOAuth2User(String email, String name, AuthProvider provider, String providerId) {
@@ -77,9 +80,10 @@ public class OAuth2Service {
         return userRepository.save(newUser);
     }
 
-    private TokenResponse issueTokens(User user) {
+    private TokenResponse issueAndStoreTokens(User user) {
         String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole().name());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+        tokenRedisService.saveRefreshToken(user.getId(), refreshToken, 604800000L);
         return new TokenResponse(accessToken, refreshToken);
     }
 }

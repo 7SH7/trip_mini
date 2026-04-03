@@ -39,7 +39,7 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-    @Bean
+    @Bean("oAuth2RestClient")
     public RestClient restClient() {
         return RestClient.create();
     }

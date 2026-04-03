@@ -20,9 +20,9 @@ public class BookingService {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Transactional
-    public BookingResponse createBooking(CreateBookingRequest request) {
+    public BookingResponse createBooking(Long userId, CreateBookingRequest request) {
         Booking booking = Booking.builder()
-                .userId(request.getUserId())
+                .userId(userId)
                 .tripId(request.getTripId())
                 .build();
         Booking saved = bookingRepository.save(booking);
