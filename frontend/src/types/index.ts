@@ -46,29 +46,110 @@ export interface PaymentResponse {
   createdAt: string
 }
 
-export interface RegisterRequest {
-  email: string
-  name: string
-  password: string
-}
-
-export interface LoginRequest {
-  email: string
-  password: string
-}
-
-export interface CreateTripRequest {
+export interface AccommodationResponse {
+  id: number
+  contentId: string
   title: string
-  description?: string
-  startDate: string
-  endDate: string
+  address: string | null
+  imageUrl: string | null
+  tel: string | null
+  price: number | null
+  priceRaw: string | null
+  latitude: number | null
+  longitude: number | null
+  category: string | null
 }
 
-export interface CreateBookingRequest {
-  tripId: number
+export interface SubscriptionResponse {
+  id: number
+  userId: number
+  videoCallCredits: number
+  totalVideoCallsUsed: number
+  status: 'ACTIVE' | 'SUSPENDED'
 }
 
-export interface CreatePaymentRequest {
-  bookingId: number
+export interface UseVideoCallResponse {
+  success: boolean
+  remainingCredits: number
+  message: string
+}
+
+export interface CreditPurchaseResponse {
+  id: number
+  credits: number
   amount: number
+  status: string
+}
+
+export interface FeedResponse {
+  id: number
+  userId: number
+  content: string
+  images: FeedImageResponse[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface FeedImageResponse {
+  id: number
+  imageUrl: string
+  originalFileName: string | null
+}
+
+export interface ChatRoomResponse {
+  id: number
+  name: string
+  centerLatitude: number
+  centerLongitude: number
+  onlineCount: number
+}
+
+export interface ChatMessageResponse {
+  id: number
+  chatRoomId: number
+  userId: number
+  content: string
+  type: 'TEXT' | 'IMAGE' | 'SYSTEM'
+  sentAt: string
+}
+
+export interface NotificationResponse {
+  id: number
+  title: string
+  content: string
+  type: string
+  isRead: boolean
+  referenceId: string | null
+  createdAt: string
+}
+
+export interface LiveStreamResponse {
+  id: number
+  userId: number
+  streamKey: string
+  title: string
+  status: 'IDLE' | 'LIVE' | 'ENDED'
+  rtmpIngestUrl: string | null
+  hlsPlaybackUrl: string | null
+  startedAt: string | null
+  createdAt: string
+}
+
+// Requests
+export interface RegisterRequest { email: string; name: string; password: string }
+export interface LoginRequest { email: string; password: string }
+export interface OAuth2LoginRequest { code: string; redirectUri: string }
+export interface CreateTripRequest { title: string; description?: string; startDate: string; endDate: string }
+export interface CreateBookingRequest { tripId: number }
+export interface CreatePaymentRequest { bookingId: number; amount: number }
+export interface PurchaseCreditsRequest { portonePaymentId: string }
+export interface NearbyRoomRequest { latitude: number; longitude: number }
+
+// Paged
+export interface Page<T> {
+  content: T[]
+  totalElements: number
+  totalPages: number
+  number: number
+  size: number
 }

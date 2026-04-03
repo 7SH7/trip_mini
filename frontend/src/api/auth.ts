@@ -1,5 +1,5 @@
 import client from './client'
-import type { ApiResponse, TokenResponse, LoginRequest, RegisterRequest } from '../types'
+import type { ApiResponse, TokenResponse, LoginRequest, RegisterRequest, OAuth2LoginRequest } from '../types'
 
 export const authApi = {
   register: (data: RegisterRequest) =>
@@ -11,9 +11,9 @@ export const authApi = {
   logout: () =>
     client.post<ApiResponse<void>>('/api/auth/logout'),
 
-  googleLogin: (accessToken: string) =>
-    client.post<ApiResponse<TokenResponse>>('/api/auth/google', { accessToken }),
+  googleLogin: (data: OAuth2LoginRequest) =>
+    client.post<ApiResponse<TokenResponse>>('/api/auth/google', data),
 
-  kakaoLogin: (accessToken: string) =>
-    client.post<ApiResponse<TokenResponse>>('/api/auth/kakao', { accessToken }),
+  kakaoLogin: (data: OAuth2LoginRequest) =>
+    client.post<ApiResponse<TokenResponse>>('/api/auth/kakao', data),
 }
