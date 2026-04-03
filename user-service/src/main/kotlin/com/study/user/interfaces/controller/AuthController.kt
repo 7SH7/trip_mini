@@ -36,9 +36,9 @@ class AuthController(
 
     @PostMapping("/google")
     fun googleLogin(@Valid @RequestBody request: OAuth2LoginRequest): ApiResponse<TokenResponse> =
-        ApiResponse.ok(oAuth2Service.loginWithGoogle(request.accessToken))
+        ApiResponse.ok(oAuth2Service.loginWithGoogle(request.code, request.redirectUri))
 
     @PostMapping("/kakao")
     fun kakaoLogin(@Valid @RequestBody request: OAuth2LoginRequest): ApiResponse<TokenResponse> =
-        ApiResponse.ok(oAuth2Service.loginWithKakao(request.accessToken))
+        ApiResponse.ok(oAuth2Service.loginWithKakao(request.code, request.redirectUri))
 }

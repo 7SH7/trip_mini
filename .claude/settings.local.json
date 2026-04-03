@@ -14,7 +14,8 @@
       "Bash(npx tsc:*)",
       "Bash(npm run:*)",
       "Bash(./gradlew :accommodation-service:build :subscription-service:build -x test)",
-      "Bash(./gradlew :feed-service:build :notification-service:build -x test)"
+      "Bash(./gradlew :feed-service:build :notification-service:build -x test)",
+      "Bash(./gradlew :common:build :user-service:build -x test)"
     ]
   }
 }

@@ -19,4 +19,18 @@ class InternalAuthConfig {
             addUrlPatterns("/api/*")
             order = 1
         }
+
+    @Bean
+    fun xssFilter(): FilterRegistrationBean<XssFilter> =
+        FilterRegistrationBean(XssFilter()).apply {
+            addUrlPatterns("/api/*")
+            order = 0
+        }
+
+    @Bean
+    fun securityHeaderFilter(): FilterRegistrationBean<SecurityHeaderFilter> =
+        FilterRegistrationBean(SecurityHeaderFilter()).apply {
+            addUrlPatterns("/*")
+            order = -1
+        }
 }
