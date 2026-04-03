@@ -23,14 +23,22 @@ spring:
       group-id: payment-service
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.study.common.event
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 internal:
   auth:
     secret: dHJpcC1pbnRlcm5hbC1zZXJ2aWNlLWF1dGgtc2VjcmV0LWtleQ==
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.study.payment.domain.entity
+  configuration:
+    map-underscore-to-camel-case: true
 
 eureka:
   client:

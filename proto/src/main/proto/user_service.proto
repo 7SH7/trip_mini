@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package com.study.grpc;
+
+option java_multiple_files = true;
+option java_package = "com.study.grpc.user";
+
+service UserGrpcService {
+  rpc GetUser (GetUserRequest) returns (GetUserResponse);
+  rpc CheckUserExists (CheckUserExistsRequest) returns (CheckUserExistsResponse);
+}
+
+message GetUserRequest {
+  int64 user_id = 1;
+}
+
+message GetUserResponse {
+  int64 id = 1;
+  string email = 2;
+  string name = 3;
+}
+
+message CheckUserExistsRequest {
+  int64 user_id = 1;
+}
+
+message CheckUserExistsResponse {
+  bool exists = 1;
+}

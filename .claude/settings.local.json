@@ -5,7 +5,14 @@
       "Bash(java:*)",
       "Bash(rm:*)",
       "Bash(./gradlew clean:*)",
-      "Bash(./gradlew :api-gateway:build -x test)"
+      "Bash(./gradlew :api-gateway:build -x test)",
+      "WebSearch",
+      "Bash(./gradlew :common:compileKotlin)",
+      "Bash(./gradlew :common:compileKotlin --stacktrace)",
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)"
     ]
   }
 }

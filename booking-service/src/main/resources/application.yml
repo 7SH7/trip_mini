@@ -23,14 +23,31 @@ spring:
       group-id: booking-service
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.study.common.event
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 internal:
   auth:
     secret: dHJpcC1pbnRlcm5hbC1zZXJ2aWNlLWF1dGgtc2VjcmV0LWtleQ==
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.study.booking.domain.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+grpc:
+  client:
+    user-service:
+      address: static://localhost:9091
+      negotiation-type: plaintext
+    trip-service:
+      address: static://localhost:9082
+      negotiation-type: plaintext
 
 eureka:
   client:
