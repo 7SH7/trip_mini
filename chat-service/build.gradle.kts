@@ -1,0 +1,15 @@
+plugins {
+    id("org.springframework.boot")
+    kotlin("plugin.jpa")
+}
+
+dependencies {
+    implementation(project(":common"))
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.springframework.kafka:spring-kafka")
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    runtimeOnly("com.mysql:mysql-connector-j")
+}

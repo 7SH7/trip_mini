@@ -1,0 +1,34 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: accommodation-service
+  datasource:
+    url: jdbc:mysql://localhost:3000/trip_accommodation?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&createDatabaseIfNotExist=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+
+internal:
+  auth:
+    secret: dHJpcC1pbnRlcm5hbC1zZXJ2aWNlLWF1dGgtc2VjcmV0LWtleQ==
+
+tour-api:
+  service-key: ${TOUR_API_KEY:test-key}
+  base-url: https://apis.data.go.kr/B551011/KorService1
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true

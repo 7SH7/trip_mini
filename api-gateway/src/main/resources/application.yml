@@ -41,6 +41,41 @@ spring:
           predicates:
             - Path=/api/payments/**
 
+        - id: accommodation-service
+          uri: lb://accommodation-service
+          predicates:
+            - Path=/api/accommodations/**
+
+        - id: subscription-service
+          uri: lb://subscription-service
+          predicates:
+            - Path=/api/subscriptions/**
+
+        - id: feed-service
+          uri: lb://feed-service
+          predicates:
+            - Path=/api/feeds/**
+
+        - id: media-service
+          uri: lb://media-service
+          predicates:
+            - Path=/api/media/**
+
+        - id: chat-service-ws
+          uri: lb:ws://chat-service
+          predicates:
+            - Path=/ws/chat/**
+
+        - id: chat-service
+          uri: lb://chat-service
+          predicates:
+            - Path=/api/chat/**
+
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notifications/**
+
   data:
     redis:
       host: localhost
