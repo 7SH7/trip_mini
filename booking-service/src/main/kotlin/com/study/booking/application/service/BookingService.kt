@@ -8,7 +8,7 @@ import com.study.booking.infrastructure.client.TripServiceClient
 import com.study.booking.infrastructure.client.UserServiceClient
 import com.study.common.event.*
 import com.study.common.exception.EntityNotFoundException
-import org.springframework.kafka.core.KafkaTemplate
+import com.study.common.outbox.OutboxEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -16,17 +16,18 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class BookingService(
     private val bookingRepository: BookingRepository,
-    private val kafkaTemplate: KafkaTemplate<String, DomainEvent>,
+    private val outboxEventPublisher: OutboxEventPublisher,
     private val userServiceClient: UserServiceClient,
     private val tripServiceClient: TripServiceClient
 ) {
     @Transactional
     fun createBooking(userId: Long, request: CreateBookingRequest): BookingResponse {
+        val tripId = requireNotNull(request.tripId) { "Trip ID is required" }
         userServiceClient.verifyUserExists(userId)
-        tripServiceClient.verifyTripExists(request.tripId!!)
-        val booking = Booking(userId = userId, tripId = request.tripId)
+        tripServiceClient.verifyTripExists(tripId)
+        val booking = Booking(userId = userId, tripId = tripId)
         val saved = bookingRepository.save(booking)
-        kafkaTemplate.send("booking-events", BookingCreatedEvent(saved.id, saved.userId, saved.tripId))
+        outboxEventPublisher.publish("booking-events", BookingCreatedEvent(saved.id, saved.userId, saved.tripId))
         return BookingResponse.from(saved)
     }
 
@@ -40,7 +41,7 @@ class BookingService(
     fun confirmBooking(id: Long): BookingResponse {
         val booking = bookingRepository.findById(id).orElseThrow { EntityNotFoundException("Booking", id) }
         booking.confirm()
-        kafkaTemplate.send("booking-events", BookingConfirmedEvent(booking.id, booking.userId, booking.tripId))
+        outboxEventPublisher.publish("booking-events", BookingConfirmedEvent(booking.id, booking.userId, booking.tripId))
         return BookingResponse.from(booking)
     }
 
@@ -48,7 +49,7 @@ class BookingService(
     fun cancelBooking(id: Long): BookingResponse {
         val booking = bookingRepository.findById(id).orElseThrow { EntityNotFoundException("Booking", id) }
         booking.cancel()
-        kafkaTemplate.send("booking-events", BookingCancelledEvent(booking.id, booking.userId, booking.tripId))
+        outboxEventPublisher.publish("booking-events", BookingCancelledEvent(booking.id, booking.userId, booking.tripId))
         return BookingResponse.from(booking)
     }
 }

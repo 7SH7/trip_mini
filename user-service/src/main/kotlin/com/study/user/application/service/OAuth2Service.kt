@@ -1,5 +1,6 @@
 package com.study.user.application.service
 
+import com.study.common.exception.InvalidRequestException
 import com.study.user.application.dto.TokenResponse
 import com.study.user.domain.entity.AuthProvider
 import com.study.user.domain.entity.Role
@@ -26,7 +27,8 @@ class OAuth2Service(
             .uri("https://www.googleapis.com/oauth2/v3/userinfo")
             .header("Authorization", "Bearer $accessToken")
             .retrieve()
-            .body(object : ParameterizedTypeReference<Map<String, Any>>() {})!!
+            .body(object : ParameterizedTypeReference<Map<String, Any>>() {})
+            ?: throw InvalidRequestException("Failed to fetch user info from OAuth2 provider")
 
         val email = userInfo["email"] as String
         val name = userInfo["name"] as String
@@ -43,7 +45,8 @@ class OAuth2Service(
             .uri("https://kapi.kakao.com/v2/user/me")
             .header("Authorization", "Bearer $accessToken")
             .retrieve()
-            .body(object : ParameterizedTypeReference<Map<String, Any>>() {})!!
+            .body(object : ParameterizedTypeReference<Map<String, Any>>() {})
+            ?: throw InvalidRequestException("Failed to fetch user info from OAuth2 provider")
 
         val kakaoAccount = userInfo["kakao_account"] as Map<String, Any>
         val profile = kakaoAccount["profile"] as Map<String, Any>

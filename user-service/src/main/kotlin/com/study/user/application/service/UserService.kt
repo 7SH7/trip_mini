@@ -1,13 +1,12 @@
 package com.study.user.application.service
 
-import com.study.common.event.DomainEvent
 import com.study.common.event.UserCreatedEvent
 import com.study.common.exception.EntityNotFoundException
+import com.study.common.outbox.OutboxEventPublisher
 import com.study.user.application.dto.CreateUserRequest
 import com.study.user.application.dto.UserResponse
 import com.study.user.domain.entity.User
 import com.study.user.domain.repository.UserRepository
-import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -15,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class UserService(
     private val userRepository: UserRepository,
-    private val kafkaTemplate: KafkaTemplate<String, DomainEvent>
+    private val outboxEventPublisher: OutboxEventPublisher
 ) {
     @Transactional
     fun createUser(request: CreateUserRequest): UserResponse {
@@ -25,7 +24,7 @@ class UserService(
             password = request.password
         )
         val saved = userRepository.save(user)
-        kafkaTemplate.send("user-events", UserCreatedEvent(saved.id, saved.email))
+        outboxEventPublisher.publish("user-events", UserCreatedEvent(saved.id, saved.email))
         return UserResponse.from(saved)
     }
 
