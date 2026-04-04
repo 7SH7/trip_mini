@@ -36,7 +36,8 @@
       "Bash(pkill -f \"user-service\")",
       "Bash(curl -s -o /dev/null -w \"Eureka: %{http_code}\\\\n\" http://localhost:8761)",
       "Bash(./gradlew compileKotlin)",
-      "Bash(./gradlew :trip-service:compileKotlin)"
+      "Bash(./gradlew :trip-service:compileKotlin)",
+      "Bash(ls /c/Users/user/IdeaProjects/trip/*/build.gradle.kts)"
     ]
   }
 }
