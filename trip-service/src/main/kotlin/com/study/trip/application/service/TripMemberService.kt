@@ -22,6 +22,10 @@ class TripMemberService(
     private val joinRequestRepository: TripJoinRequestRepository,
     private val outboxEventPublisher: OutboxEventPublisher
 ) {
+    companion object {
+        const val MAX_MEMBERS = 5
+    }
+
     @Transactional
     fun addOwner(tripId: Long, userId: Long) {
         tripMemberRepository.save(TripMember(tripId = tripId, userId = userId, role = MemberRole.OWNER))
@@ -53,6 +57,10 @@ class TripMemberService(
         if (joinRequestRepository.existsByTripIdAndUserIdAndStatus(invite.tripId, userId, JoinRequestStatus.PENDING))
             throw InvalidRequestException("이미 참여 요청을 보냈습니다.")
 
+        val currentCount = tripMemberRepository.findByTripId(invite.tripId).size
+        if (currentCount >= MAX_MEMBERS)
+            throw InvalidRequestException("여행 인원이 최대 ${MAX_MEMBERS}명을 초과할 수 없습니다.")
+
         val trip = tripRepository.findById(invite.tripId)
             .orElseThrow { EntityNotFoundException("Trip", invite.tripId) }
         val owner = tripMemberRepository.findByTripId(invite.tripId)
@@ -82,6 +90,11 @@ class TripMemberService(
             .orElseThrow { EntityNotFoundException("TripJoinRequest", requestId) }
         if (joinRequest.status != JoinRequestStatus.PENDING)
             throw InvalidRequestException("이미 처리된 요청입니다.")
+
+        // 인원 제한 체크
+        val currentCount = tripMemberRepository.findByTripId(tripId).size
+        if (currentCount >= MAX_MEMBERS)
+            throw InvalidRequestException("여행 인원이 최대 ${MAX_MEMBERS}명을 초과할 수 없습니다.")
 
         // 승인 → 멤버 추가
         joinRequest.approve(approverUserId)
