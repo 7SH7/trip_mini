@@ -135,6 +135,35 @@ export interface LiveStreamResponse {
   createdAt: string
 }
 
+// Trip Team
+export interface TripMemberResponse {
+  id: number; tripId: number; userId: number; role: 'OWNER' | 'MEMBER'; joinedAt: string
+}
+export interface InviteCodeResponse {
+  code: string; tripId: number; expiresAt: string
+}
+export interface TripScheduleResponse {
+  id: number; tripId: number; date: string; title: string; memo: string | null
+  startTime: string | null; endTime: string | null; orderIndex: number; createdAt: string
+}
+export interface TripPlaceResponse {
+  id: number; tripId: number; name: string; address: string | null
+  latitude: number | null; longitude: number | null; category: string | null
+  notes: string | null; addedBy: number | null; createdAt: string
+}
+export interface TripExpenseResponse {
+  id: number; tripId: number; userId: number; category: string
+  amount: number; description: string | null; date: string; createdAt: string
+}
+export interface ExpenseSummaryResponse {
+  totalExpense: number; byCategory: Record<string, number>; byUser: Record<string, number>
+}
+
+export interface TripJoinRequestResponse {
+  id: number; tripId: number; userId: number; inviteCode: string
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'; createdAt: string; processedAt: string | null
+}
+
 // Requests
 export interface RegisterRequest { email: string; name: string; password: string }
 export interface LoginRequest { email: string; password: string }

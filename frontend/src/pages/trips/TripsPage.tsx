@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { Typography, Button, Box, Chip, Stack, Skeleton, Card, CardContent, CardActionArea, Grid } from '@mui/material'
-import { Add, Flight, CalendarMonth, ArrowForward } from '@mui/icons-material'
+import { Add, Flight, CalendarMonth, ArrowForward, GroupAdd } from '@mui/icons-material'
 import { tripApi } from '../../api/trips'
 import type { TripResponse } from '../../types'
+import { useState } from 'react'
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Alert } from '@mui/material'
 
 const statusConfig: Record<string, { label: string; color: 'info' | 'warning' | 'success' | 'error' }> = {
   PLANNED: { label: '예정', color: 'info' },
@@ -13,6 +15,17 @@ const statusConfig: Record<string, { label: string; color: 'info' | 'warning' | 
 }
 
 export default function TripsPage() {
+  const [joinOpen, setJoinOpen] = useState(false)
+  const [joinCode, setJoinCode] = useState('')
+  const [joinError, setJoinError] = useState('')
+  const [joinSuccess, setJoinSuccess] = useState(false)
+
+  const joinMutation = useMutation({
+    mutationFn: () => tripApi.joinByCode(joinCode),
+    onSuccess: () => { setJoinSuccess(true); setJoinCode(''); setTimeout(() => { setJoinOpen(false); setJoinSuccess(false) }, 2000) },
+    onError: () => setJoinError('유효하지 않거나 만료된 초대 코드입니다.'),
+  })
+
   const { data: trips, isLoading } = useQuery({
     queryKey: ['trips', 'my'],
     queryFn: () => tripApi.getMyTrips().then(r => r.data.data || []),
@@ -25,10 +38,16 @@ export default function TripsPage() {
           <Typography variant="h4">내 여행</Typography>
           <Typography variant="body2" color="text.secondary">여행 일정을 관리하고 예약하세요</Typography>
         </Box>
-        <Button component={Link} to="/trips/new" variant="contained" startIcon={<Add />} disableElevation
-          sx={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}>
-          새 여행
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button variant="outlined" startIcon={<GroupAdd />} onClick={() => setJoinOpen(true)}
+            sx={{ borderColor: '#e2e8f0', color: 'text.secondary' }}>
+            코드로 참여
+          </Button>
+          <Button component={Link} to="/trips/new" variant="contained" startIcon={<Add />} disableElevation
+            sx={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}>
+            새 여행
+          </Button>
+        </Stack>
       </Stack>
 
       {isLoading && (
@@ -83,6 +102,25 @@ export default function TripsPage() {
           )
         })}
       </Grid>
+
+      <Dialog open={joinOpen} onClose={() => { setJoinOpen(false); setJoinError('') }} maxWidth="xs" fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogTitle fontWeight={700}>초대 코드로 참여</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            친구에게 받은 8자리 초대 코드를 입력하세요
+          </Typography>
+          {joinError && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{joinError}</Alert>}
+          {joinSuccess && <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>참여 요청을 보냈습니다! 방장의 승인을 기다려주세요.</Alert>}
+          {!joinSuccess && <TextField fullWidth label="초대 코드" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())}
+            placeholder="예: A1B2C3D4" inputProps={{ maxLength: 8, style: { letterSpacing: '0.15em', fontWeight: 700 } }} />}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setJoinOpen(false)} sx={{ color: 'text.secondary' }}>취소</Button>
+          <Button variant="contained" onClick={() => joinMutation.mutate()} disabled={joinCode.length < 8 || joinMutation.isPending}
+            disableElevation>참여하기</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

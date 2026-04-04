@@ -16,7 +16,8 @@ import org.springframework.transaction.annotation.Transactional
 class TripService(
     private val tripRepository: TripRepository,
     private val tripQueryRepository: TripQueryRepository,
-    private val outboxEventPublisher: OutboxEventPublisher
+    private val outboxEventPublisher: OutboxEventPublisher,
+    private val tripMemberService: TripMemberService
 ) {
     @Transactional
     fun createTrip(userId: Long, request: CreateTripRequest): TripResponse {
@@ -27,6 +28,7 @@ class TripService(
             startDate = startDate, endDate = endDate
         )
         val saved = tripRepository.save(trip)
+        tripMemberService.addOwner(saved.id, userId)
         outboxEventPublisher.publish("trip-events", TripCreatedEvent(saved.id, saved.userId, saved.title))
         return TripResponse.from(saved)
     }
@@ -37,7 +39,7 @@ class TripService(
     }
 
     fun getTripsByUser(userId: Long): List<TripResponse> =
-        tripRepository.findByUserId(userId).map { TripResponse.from(it) }
+        tripMemberService.getMyTripsIncludingTeam(userId)
 
     fun searchTrips(
         userId: Long?, status: com.study.trip.domain.entity.TripStatus?,

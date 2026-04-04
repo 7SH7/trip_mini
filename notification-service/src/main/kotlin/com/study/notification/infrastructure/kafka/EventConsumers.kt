@@ -110,15 +110,43 @@ class EventConsumers(
     fun handleTripEvent(message: String) {
         try {
             val event = objectMapper.readValue(message, DomainEvent::class.java)
-            if (event is TripCreatedEvent) {
-                log.info("New trip created: {} by user {}", event.tripId, event.userId)
-                notificationService.createAndSend(
-                    userId = event.userId,
-                    title = "여행 생성 완료",
-                    content = "\"${event.title}\" 여행이 생성되었습니다. 숙소를 검색해보세요!",
-                    type = NotificationType.SYSTEM,
-                    referenceId = event.tripId.toString()
-                )
+            when (event) {
+                is TripCreatedEvent -> {
+                    notificationService.createAndSend(
+                        userId = event.userId,
+                        title = "여행 생성 완료",
+                        content = "\"${event.title}\" 여행이 생성되었습니다. 숙소를 검색해보세요!",
+                        type = NotificationType.SYSTEM,
+                        referenceId = event.tripId.toString()
+                    )
+                }
+                is TripJoinRequestedEvent -> {
+                    notificationService.createAndSend(
+                        userId = event.ownerUserId,
+                        title = "여행 참여 요청",
+                        content = "User #${event.requestUserId}님이 \"${event.tripTitle}\" 여행에 참여를 요청했습니다.",
+                        type = NotificationType.SYSTEM,
+                        referenceId = event.tripId.toString()
+                    )
+                }
+                is TripJoinApprovedEvent -> {
+                    notificationService.createAndSend(
+                        userId = event.requestUserId,
+                        title = "참여 승인",
+                        content = "\"${event.tripTitle}\" 여행 참여가 승인되었습니다!",
+                        type = NotificationType.SYSTEM,
+                        referenceId = event.tripId.toString()
+                    )
+                }
+                is TripJoinRejectedEvent -> {
+                    notificationService.createAndSend(
+                        userId = event.requestUserId,
+                        title = "참여 거절",
+                        content = "\"${event.tripTitle}\" 여행 참여가 거절되었습니다.",
+                        type = NotificationType.SYSTEM,
+                        referenceId = event.tripId.toString()
+                    )
+                }
             }
         } catch (e: Exception) {
             log.warn("Failed to process trip event: {}", e.message)
