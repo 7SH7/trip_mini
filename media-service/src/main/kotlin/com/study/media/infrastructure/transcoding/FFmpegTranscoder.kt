@@ -2,7 +2,6 @@ package com.study.media.infrastructure.transcoding
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import java.io.File
 import java.nio.file.Files
@@ -22,7 +21,6 @@ class FFmpegTranscoder(
         val error: String? = null
     )
 
-    @Async
     fun transcode(inputFile: File, jobId: Long): TranscodeResult {
         val outputDir = "$tempDir/job-$jobId"
         Files.createDirectories(Path.of(outputDir))

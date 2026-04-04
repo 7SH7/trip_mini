@@ -1,11 +1,15 @@
 package com.study.user
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.runApplication
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.scheduling.annotation.EnableScheduling
 
 @SpringBootApplication(scanBasePackages = ["com.study.user", "com.study.common"])
 @EnableScheduling
+@EntityScan(basePackages = ["com.study.user", "com.study.common"])
+@EnableJpaRepositories(basePackages = ["com.study.user", "com.study.common"])
 class UserApplication
 
 fun main(args: Array<String>) {

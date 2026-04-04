@@ -1,11 +1,11 @@
 plugins {
     java
-    id("org.springframework.boot") version "4.0.5" apply false
+    id("org.springframework.boot") version "3.4.5" apply false
     id("io.spring.dependency-management") version "1.1.7" apply false
-    kotlin("jvm") version "2.2.21" apply false
-    kotlin("plugin.spring") version "2.2.21" apply false
-    kotlin("plugin.jpa") version "2.2.21" apply false
-    kotlin("kapt") version "2.2.21" apply false
+    kotlin("jvm") version "2.0.21" apply false
+    kotlin("plugin.spring") version "2.0.21" apply false
+    kotlin("plugin.jpa") version "2.0.21" apply false
+    kotlin("kapt") version "2.0.21" apply false
 }
 
 allprojects {
@@ -24,8 +24,8 @@ subprojects {
 
     the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {
         imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.5")
-            mavenBom("org.springframework.cloud:spring-cloud-dependencies:2025.0.0")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.4.5")
+            mavenBom("org.springframework.cloud:spring-cloud-dependencies:2024.0.1")
         }
     }
 

@@ -59,7 +59,7 @@ class EventConsumers(
                     userId = event.userId,
                     title = "결제 실패",
                     content = "결제가 실패하여 예약이 자동 취소되었습니다. 사유: ${event.reason}",
-                    type = NotificationType.PAYMENT_COMPLETED,
+                    type = NotificationType.PAYMENT_FAILED,
                     referenceId = event.bookingId.toString()
                 )
             }
@@ -81,9 +81,7 @@ class EventConsumers(
             val event = objectMapper.readValue(message, DomainEvent::class.java)
             if (event is ChatMessageEvent) {
                 log.info("Chat message from user {} in room {}", event.senderId, event.chatRoomId)
-                // TODO: check if recipient is offline, then send notification
-                // For now, we could notify all room members who are offline
-                // This would require knowing room members - skip for now, just log
+                // GPS 기반 채팅방은 고정 멤버가 없으므로 개별 알림 대신 로깅만 수행
             }
         } catch (e: Exception) {
             log.warn("Failed to process chat event: {}", e.message)

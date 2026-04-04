@@ -2,8 +2,6 @@ package com.study.media.infrastructure.kafka
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.study.media.application.service.TranscodingService
-import com.study.media.domain.repository.TranscodingJobRepository
-import com.study.media.infrastructure.transcoding.FFmpegTranscoder
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
@@ -11,8 +9,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Component
 class VideoUploadConsumer(
-    private val transcodingJobRepository: TranscodingJobRepository,
-    private val ffmpegTranscoder: FFmpegTranscoder,
+    private val transcodingService: TranscodingService,
     private val objectMapper: ObjectMapper
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -31,19 +28,10 @@ class VideoUploadConsumer(
 
                 log.info("Received VideoUploadedEvent: feedId={}, mediaId={}, s3Key={}", feedId, mediaId, s3Key)
 
-                val job = transcodingJobRepository.save(
-                    com.study.media.domain.entity.TranscodingJob(
-                        feedId = feedId,
-                        mediaId = mediaId,
-                        inputS3Key = s3Key
-                    )
-                )
-
-                job.start()
-                transcodingJobRepository.save(job)
-
-                // Transcoding runs async via @Async on FFmpegTranscoder
+                val job = transcodingService.createJob(feedId, mediaId, s3Key)
                 log.info("Transcoding job {} created for media {}", job.id, mediaId)
+
+                transcodingService.processJob(job.id)
             }
         } catch (e: Exception) {
             log.error("Failed to process media event", e)

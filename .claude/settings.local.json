@@ -18,7 +18,24 @@
       "Bash(./gradlew :common:build :user-service:build -x test)",
       "Bash(docker --version)",
       "Bash(docker-compose --version)",
-      "Bash(docker compose:*)"
+      "Bash(docker compose:*)",
+      "Bash(docker info:*)",
+      "Bash(./gradlew :eureka-server:bootRun)",
+      "Bash(curl -s http://localhost:8761)",
+      "Bash(echo \"Eureka starting in background \\(PID: $!\\)\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8761)",
+      "Bash(./gradlew :eureka-server:build -x test)",
+      "Bash(xargs -I{} jar tf {})",
+      "Bash(jar tf:*)",
+      "Bash(\"/c/Program Files/Java/jdk-21/bin/jar\" tf \"/c/Users/user/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure/4.0.5/bf08009c287a35514024334852a88cb257e783dc/spring-boot-autoconfigure-4.0.5.jar\")",
+      "Bash(./gradlew :chat-service:build -x test)",
+      "Bash(./gradlew :accommodation-service:build -x test)",
+      "Bash(find . -name \"build\" -type d -maxdepth 2 -exec rm -rf {} +)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8081/api/auth/login)",
+      "Bash(pkill -f \"eureka-server\")",
+      "Bash(pkill -f \"user-service\")",
+      "Bash(curl -s -o /dev/null -w \"Eureka: %{http_code}\\\\n\" http://localhost:8761)",
+      "Bash(./gradlew compileKotlin)"
     ]
   }
 }
