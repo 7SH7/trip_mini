@@ -29,14 +29,60 @@ const queryClient = new QueryClient({
 
 const theme = createTheme({
   palette: {
-    primary: { main: '#2563eb' },
-    secondary: { main: '#64748b' },
+    primary: { main: '#3b82f6', light: '#60a5fa', dark: '#2563eb' },
+    secondary: { main: '#f97316', light: '#fb923c', dark: '#ea580c' },
     error: { main: '#ef4444' },
+    success: { main: '#22c55e' },
+    warning: { main: '#f59e0b' },
+    info: { main: '#06b6d4' },
+    background: { default: '#f8fafc', paper: '#ffffff' },
+    text: { primary: '#1e293b', secondary: '#64748b' },
   },
   typography: {
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    h3: { fontWeight: 800, letterSpacing: '-0.02em' },
+    h4: { fontWeight: 700, letterSpacing: '-0.01em' },
+    h5: { fontWeight: 700 },
+    h6: { fontWeight: 600 },
+    subtitle1: { fontWeight: 500, color: '#64748b' },
+    button: { textTransform: 'none', fontWeight: 600 },
   },
-  shape: { borderRadius: 10 },
+  shape: { borderRadius: 12 },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: { borderRadius: 10, padding: '8px 20px', boxShadow: 'none', '&:hover': { boxShadow: 'none' } },
+        contained: { '&:hover': { transform: 'translateY(-1px)', transition: 'transform 0.2s' } },
+        sizeLarge: { padding: '12px 28px', fontSize: '1rem' },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+          transition: 'all 0.2s ease',
+          '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.08)', transform: 'translateY(-2px)' },
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: { borderRadius: 16 },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: { fontWeight: 600, borderRadius: 8 },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: { '& .MuiOutlinedInput-root': { borderRadius: 10 } },
+      },
+    },
+  },
 })
 
 export default function App() {

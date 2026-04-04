@@ -1,60 +1,88 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Paper, Button, Typography, Box, Chip, Skeleton, Stack } from '@mui/material'
-import { Add, Flight } from '@mui/icons-material'
-import styled from 'styled-components'
+import { Typography, Button, Box, Chip, Stack, Skeleton, Card, CardContent, CardActionArea, Grid } from '@mui/material'
+import { Add, Flight, CalendarMonth, ArrowForward } from '@mui/icons-material'
 import { tripApi } from '../../api/trips'
 import type { TripResponse } from '../../types'
 
-const TripCard = styled(Link)`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.2rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  text-decoration: none;
-  color: inherit;
-  transition: box-shadow 0.2s;
-  &:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-`
-
-const statusColor: Record<string, 'info' | 'warning' | 'success' | 'error'> = {
-  PLANNED: 'info', IN_PROGRESS: 'warning', COMPLETED: 'success', CANCELLED: 'error',
+const statusConfig: Record<string, { label: string; color: 'info' | 'warning' | 'success' | 'error' }> = {
+  PLANNED: { label: '예정', color: 'info' },
+  IN_PROGRESS: { label: '진행 중', color: 'warning' },
+  COMPLETED: { label: '완료', color: 'success' },
+  CANCELLED: { label: '취소됨', color: 'error' },
 }
 
 export default function TripsPage() {
   const { data: trips, isLoading } = useQuery({
     queryKey: ['trips', 'my'],
-    queryFn: () => tripApi.getMyTrips().then(res => res.data.data || []),
+    queryFn: () => tripApi.getMyTrips().then(r => r.data.data || []),
   })
 
   return (
-    <Paper sx={{ p: 3 }} elevation={0}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h5" fontWeight={600}>내 여행</Typography>
-        <Button component={Link} to="/trips/new" variant="contained" startIcon={<Add />}>여행 만들기</Button>
-      </Box>
-      {isLoading ? (
-        <Stack spacing={1}>{[1,2,3].map(i => <Skeleton key={i} height={70} variant="rounded" />)}</Stack>
-      ) : !trips?.length ? (
-        <Box textAlign="center" py={5} color="#999">
-          <Flight sx={{ fontSize: 48, mb: 1 }} />
-          <Typography>아직 여행이 없습니다. 새 여행을 만들어보세요!</Typography>
+    <Box>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+        <Box>
+          <Typography variant="h4">내 여행</Typography>
+          <Typography variant="body2" color="text.secondary">여행 일정을 관리하고 예약하세요</Typography>
         </Box>
-      ) : (
-        <Stack spacing={1.5}>
-          {trips.map((trip: TripResponse) => (
-            <TripCard key={trip.id} to={`/trips/${trip.id}`}>
-              <div>
-                <Typography fontWeight={600}>{trip.title}</Typography>
-                <Typography variant="body2" color="text.secondary">{trip.startDate} ~ {trip.endDate}</Typography>
-              </div>
-              <Chip label={trip.status} color={statusColor[trip.status]} size="small" />
-            </TripCard>
-          ))}
-        </Stack>
+        <Button component={Link} to="/trips/new" variant="contained" startIcon={<Add />} disableElevation
+          sx={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}>
+          새 여행
+        </Button>
+      </Stack>
+
+      {isLoading && (
+        <Grid container spacing={2}>
+          {[1,2,3].map(i => <Grid size={{ xs: 12, sm: 6, md: 4 }} key={i}><Skeleton height={180} variant="rounded" sx={{ borderRadius: 4 }} /></Grid>)}
+        </Grid>
       )}
-    </Paper>
+
+      {!trips?.length && !isLoading && (
+        <Box textAlign="center" py={8} sx={{ bgcolor: '#f8fafc', borderRadius: 4, border: '2px dashed #e2e8f0' }}>
+          <Flight sx={{ fontSize: 56, color: '#cbd5e1', mb: 2 }} />
+          <Typography variant="h6" color="text.secondary" gutterBottom>아직 여행이 없습니다</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>첫 여행을 계획해보세요!</Typography>
+          <Button component={Link} to="/trips/new" variant="contained" startIcon={<Add />} disableElevation>여행 만들기</Button>
+        </Box>
+      )}
+
+      <Grid container spacing={2}>
+        {trips?.map((trip: TripResponse) => {
+          const cfg = statusConfig[trip.status] || statusConfig.PLANNED
+          return (
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={trip.id}>
+              <Card elevation={0}>
+                <CardActionArea component={Link} to={`/trips/${trip.id}`}>
+                  <Box sx={{
+                    height: 8, borderRadius: '16px 16px 0 0',
+                    background: trip.status === 'IN_PROGRESS' ? 'linear-gradient(90deg, #f59e0b, #f97316)' :
+                      trip.status === 'COMPLETED' ? 'linear-gradient(90deg, #22c55e, #06b6d4)' :
+                      trip.status === 'CANCELLED' ? '#ef4444' : 'linear-gradient(90deg, #3b82f6, #06b6d4)',
+                  }} />
+                  <CardContent sx={{ p: 2.5 }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1.5 }}>
+                      <Typography variant="h6" sx={{ fontSize: '1.05rem' }}>{trip.title}</Typography>
+                      <Chip label={cfg.label} color={cfg.color} size="small" variant="outlined" />
+                    </Stack>
+                    {trip.description && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {trip.description}
+                      </Typography>
+                    )}
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                      <Stack direction="row" spacing={0.5} alignItems="center" sx={{ color: 'text.secondary' }}>
+                        <CalendarMonth sx={{ fontSize: 16 }} />
+                        <Typography variant="caption">{trip.startDate} ~ {trip.endDate}</Typography>
+                      </Stack>
+                      <ArrowForward sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    </Stack>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          )
+        })}
+      </Grid>
+    </Box>
   )
 }

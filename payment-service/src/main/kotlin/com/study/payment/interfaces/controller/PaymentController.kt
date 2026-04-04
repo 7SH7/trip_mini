@@ -17,6 +17,10 @@ class PaymentController(private val paymentService: PaymentService) {
         @Valid @RequestBody request: CreatePaymentRequest
     ): ApiResponse<PaymentResponse> = ApiResponse.created(paymentService.createPayment(userId, request))
 
+    @GetMapping("/my")
+    fun getMyPayments(@RequestHeader("X-User-Id") userId: Long): ApiResponse<List<PaymentResponse>> =
+        ApiResponse.ok(paymentService.getPaymentsByUser(userId))
+
     @GetMapping("/{id}")
     fun getPayment(@PathVariable id: Long): ApiResponse<PaymentResponse> =
         ApiResponse.ok(paymentService.getPayment(id))

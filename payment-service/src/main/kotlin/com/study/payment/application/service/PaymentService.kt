@@ -24,12 +24,14 @@ class PaymentService(
         val amount = requireNotNull(request.amount) { "Amount is required" }
         val payment = Payment(bookingId = bookingId, userId = userId, amount = amount)
         val saved = paymentRepository.save(payment)
-        outboxEventPublisher.publish("payment-events", PaymentCompletedEvent(saved.id, saved.bookingId, saved.userId, saved.amount))
         return PaymentResponse.from(saved)
     }
 
     fun getPayment(id: Long): PaymentResponse =
         PaymentResponse.from(paymentRepository.findById(id).orElseThrow { EntityNotFoundException("Payment", id) })
+
+    fun getPaymentsByUser(userId: Long): List<PaymentResponse> =
+        paymentRepository.findByUserId(userId).map { PaymentResponse.from(it) }
 
     @Transactional
     fun completePayment(id: Long): PaymentResponse {

@@ -5,6 +5,9 @@ export const paymentApi = {
   create: (data: CreatePaymentRequest) =>
     client.post<ApiResponse<PaymentResponse>>('/api/payments', data),
 
+  getMyPayments: () =>
+    client.get<ApiResponse<PaymentResponse[]>>('/api/payments/my'),
+
   getById: (id: number) =>
     client.get<ApiResponse<PaymentResponse>>(`/api/payments/${id}`),
 

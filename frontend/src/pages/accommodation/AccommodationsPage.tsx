@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Paper, TextField, Button, Typography, Box, Card, CardContent, CardMedia, Chip, Stack, Skeleton, InputAdornment } from '@mui/material'
-import { Search, Hotel, Place, Phone } from '@mui/icons-material'
+import { Typography, TextField, Box, Grid, Card, CardContent, CardMedia, Skeleton, Stack, Chip, InputAdornment, IconButton } from '@mui/material'
+import { Search, Place, Phone, Hotel } from '@mui/icons-material'
 import { accommodationApi } from '../../api/accommodations'
 import type { AccommodationResponse } from '../../types'
 
@@ -11,69 +11,91 @@ export default function AccommodationsPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['accommodations', searchKeyword],
-    queryFn: () => accommodationApi.search({ keyword: searchKeyword || undefined, size: 20 }).then(r => r.data.data),
+    queryFn: () => accommodationApi.search({ keyword: searchKeyword, size: 20 }).then(r => r.data.data?.content || []),
     enabled: !!searchKeyword,
   })
 
-  const handleSearch = () => setSearchKeyword(keyword)
+  const handleSearch = () => { if (keyword.trim()) setSearchKeyword(keyword.trim()) }
 
   return (
-    <Paper sx={{ p: 3 }} elevation={0}>
-      <Typography variant="h5" fontWeight={600} gutterBottom>숙소 검색</Typography>
-
-      <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
+    <Box>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" sx={{ mb: 0.5 }}>숙소 검색</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>전국의 숙소를 검색하고 비교해보세요</Typography>
         <TextField
-          fullWidth placeholder="숙소명 또는 지역 검색"
-          value={keyword} onChange={e => setKeyword(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSearch()}
-          slotProps={{ input: { startAdornment: <InputAdornment position="start"><Search /></InputAdornment> } }}
+          fullWidth placeholder="지역명 또는 숙소명을 입력하세요" value={keyword}
+          onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSearch()}
+          slotProps={{
+            input: {
+              startAdornment: <InputAdornment position="start"><Search sx={{ color: 'text.secondary' }} /></InputAdornment>,
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleSearch} edge="end" color="primary"><Search /></IconButton>
+                </InputAdornment>
+              ),
+            }
+          }}
+          sx={{ maxWidth: 600, '& .MuiOutlinedInput-root': { bgcolor: 'white' } }}
         />
-        <Button variant="contained" onClick={handleSearch} sx={{ minWidth: 100 }}>검색</Button>
-      </Stack>
+      </Box>
 
-      {!searchKeyword && (
-        <Box textAlign="center" py={5} color="#999">
-          <Hotel sx={{ fontSize: 48, mb: 1 }} />
-          <Typography>검색어를 입력하세요</Typography>
+      {isLoading && (
+        <Grid container spacing={2.5}>
+          {[1,2,3,4,5,6].map(i => <Grid size={{ xs: 12, sm: 6, md: 4 }} key={i}><Skeleton height={280} variant="rounded" sx={{ borderRadius: 4 }} /></Grid>)}
+        </Grid>
+      )}
+
+      {searchKeyword && !data?.length && !isLoading && (
+        <Box textAlign="center" py={8} sx={{ bgcolor: '#f8fafc', borderRadius: 4, border: '2px dashed #e2e8f0' }}>
+          <Hotel sx={{ fontSize: 56, color: '#cbd5e1', mb: 2 }} />
+          <Typography variant="h6" color="text.secondary">검색 결과가 없습니다</Typography>
+          <Typography variant="body2" color="text.secondary">다른 키워드로 검색해보세요</Typography>
         </Box>
       )}
 
-      {isLoading && (
-        <Stack spacing={2}>{[1,2,3].map(i => <Skeleton key={i} height={200} variant="rounded" />)}</Stack>
+      {!searchKeyword && !isLoading && (
+        <Box textAlign="center" py={8} sx={{ bgcolor: '#f8fafc', borderRadius: 4, border: '2px dashed #e2e8f0' }}>
+          <Hotel sx={{ fontSize: 56, color: '#cbd5e1', mb: 2 }} />
+          <Typography variant="h6" color="text.secondary">숙소를 검색해보세요</Typography>
+          <Typography variant="body2" color="text.secondary">예: 서울, 제주, 부산</Typography>
+        </Box>
       )}
 
-      {data && (
-        <Stack spacing={2}>
-          {data.content?.length === 0 && (
-            <Typography textAlign="center" color="#999" py={3}>검색 결과가 없습니다.</Typography>
-          )}
-          {data.content?.map((acc: AccommodationResponse) => (
-            <Card key={acc.id} sx={{ display: 'flex' }} elevation={0} variant="outlined">
-              {acc.imageUrl && (
-                <CardMedia component="img" sx={{ width: 200, objectFit: 'cover' }}
-                  image={acc.imageUrl} alt={acc.title} />
+      <Grid container spacing={2.5}>
+        {data?.map((acc: AccommodationResponse) => (
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={acc.id}>
+            <Card elevation={0} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              {acc.imageUrl ? (
+                <CardMedia component="img" height={180} image={acc.imageUrl} alt={acc.title}
+                  sx={{ objectFit: 'cover' }} />
+              ) : (
+                <Box sx={{ height: 180, bgcolor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Hotel sx={{ fontSize: 48, color: '#cbd5e1' }} />
+                </Box>
               )}
-              <CardContent sx={{ flex: 1 }}>
-                <Typography variant="h6" fontWeight={600}>{acc.title}</Typography>
+              <CardContent sx={{ flex: 1, p: 2.5 }}>
+                <Typography fontWeight={700} sx={{ mb: 1, fontSize: '1.05rem' }}>{acc.title}</Typography>
                 {acc.address && (
-                  <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-                    <Place fontSize="small" /> {acc.address}
-                  </Typography>
+                  <Stack direction="row" spacing={0.5} alignItems="flex-start" sx={{ mb: 0.5, color: 'text.secondary' }}>
+                    <Place sx={{ fontSize: 16, mt: 0.3 }} />
+                    <Typography variant="body2">{acc.address}</Typography>
+                  </Stack>
                 )}
                 {acc.tel && (
-                  <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Phone fontSize="small" /> {acc.tel}
-                  </Typography>
+                  <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 1, color: 'text.secondary' }}>
+                    <Phone sx={{ fontSize: 16 }} />
+                    <Typography variant="body2">{acc.tel}</Typography>
+                  </Stack>
                 )}
-                <Box sx={{ mt: 1 }}>
-                  {acc.price && <Chip label={`${acc.price.toLocaleString()}원~`} color="primary" size="small" />}
-                  {acc.category && <Chip label={acc.category} size="small" sx={{ ml: 0.5 }} />}
-                </Box>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  {acc.price && <Chip label={`${acc.price.toLocaleString()}원~`} size="small" color="primary" variant="outlined" />}
+                  {acc.category && <Chip label={acc.category} size="small" variant="outlined" />}
+                </Stack>
               </CardContent>
             </Card>
-          ))}
-        </Stack>
-      )}
-    </Paper>
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
   )
 }
