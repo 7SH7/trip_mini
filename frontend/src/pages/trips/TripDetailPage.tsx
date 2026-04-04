@@ -7,11 +7,10 @@ import {
   DialogContent, DialogActions, Grid, Alert, Tooltip
 } from '@mui/material'
 import {
-  ArrowBack, CalendarMonth, BookOnline, People, Place, AccountBalanceWallet,
+  ArrowBack, CalendarMonth, People, Place, AccountBalanceWallet,
   Add, Delete, ContentCopy, Schedule, Category, CheckCircle, Cancel, HourglassEmpty
 } from '@mui/icons-material'
 import { tripApi } from '../../api/trips'
-import { bookingApi } from '../../api/bookings'
 import { useAppSelector } from '../../store/hooks'
 import type {
   TripMemberResponse, TripScheduleResponse, TripPlaceResponse,
@@ -36,11 +35,6 @@ export default function TripDetailPage() {
     queryKey: ['trip', id],
     queryFn: () => tripApi.getById(tripId).then(r => r.data.data),
     enabled: !!id,
-  })
-
-  const bookMutation = useMutation({
-    mutationFn: () => bookingApi.create({ tripId }),
-    onSuccess: () => navigate('/bookings'),
   })
 
   if (isLoading) return <Skeleton height={400} variant="rounded" sx={{ borderRadius: 4 }} />
@@ -70,12 +64,6 @@ export default function TripDetailPage() {
                 </Stack>
               </Stack>
             </Box>
-            {trip.status === 'PLANNED' && (
-              <Button variant="contained" startIcon={<BookOnline />} onClick={() => bookMutation.mutate()}
-                disableElevation sx={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}>
-                예약하기
-              </Button>
-            )}
           </Stack>
         </Box>
       </Paper>
@@ -439,6 +427,11 @@ function ExpensesTab({ tripId }: { tripId: number; userId: number }) {
     queryFn: () => tripApi.getExpenseSummary(tripId).then(r => r.data.data),
   })
 
+  const { data: settlement } = useQuery({
+    queryKey: ['trip', tripId, 'settlement'],
+    queryFn: () => tripApi.getSettlement(tripId).then(r => r.data.data),
+  })
+
   const createMutation = useMutation({
     mutationFn: () => tripApi.createExpense(tripId, {
       category: form.category, amount: Number(form.amount),
@@ -480,6 +473,35 @@ function ExpensesTab({ tripId }: { tripId: number; userId: number }) {
                   sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600 }} />
               ))}
             </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Settlement */}
+      {settlement && settlement.settlements.length > 0 && (
+        <Card elevation={0} sx={{ mb: 3, border: '1px solid #e2e8f0', '&:hover': { transform: 'none' } }}>
+          <CardContent sx={{ p: 3 }}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+              <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AccountBalanceWallet sx={{ fontSize: 18, color: '#3b82f6' }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontSize: '1rem' }}>정산 결과</Typography>
+            </Stack>
+            <Stack spacing={1}>
+              {settlement.settlements.map((s, i) => (
+                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1.5, bgcolor: '#f8fafc', borderRadius: 2 }}>
+                  <Avatar sx={{ width: 28, height: 28, fontSize: 11, bgcolor: '#fef2f2', color: '#ef4444', fontWeight: 700 }}>{s.fromUserId}</Avatar>
+                  <Typography variant="body2" color="text.secondary">→</Typography>
+                  <Avatar sx={{ width: 28, height: 28, fontSize: 11, bgcolor: '#f0fdf4', color: '#22c55e', fontWeight: 700 }}>{s.toUserId}</Avatar>
+                  <Typography variant="body2" fontWeight={700} sx={{ ml: 'auto' }}>
+                    {Number(s.amount).toLocaleString()}원
+                  </Typography>
+                </Box>
+              ))}
+            </Stack>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+              ※ 토스/카카오페이에서 직접 송금해주세요
+            </Typography>
           </CardContent>
         </Card>
       )}

@@ -43,3 +43,24 @@ data class ExpenseSummaryResponse(
     val byCategory: Map<String, BigDecimal>,
     val byUser: Map<Long, BigDecimal>
 )
+
+data class ExpenseSplitResponse(
+    val userId: Long,
+    val amount: BigDecimal
+)
+
+data class UpdateSplitRequest(
+    val splits: List<SplitEntry> = emptyList()
+) {
+    data class SplitEntry(val userId: Long, val amount: BigDecimal)
+}
+
+data class SettlementResponse(
+    val settlements: List<SettlementEntry>
+) {
+    data class SettlementEntry(
+        val fromUserId: Long,
+        val toUserId: Long,
+        val amount: BigDecimal
+    )
+}

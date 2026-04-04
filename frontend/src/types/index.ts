@@ -158,6 +158,12 @@ export interface TripExpenseResponse {
 export interface ExpenseSummaryResponse {
   totalExpense: number; byCategory: Record<string, number>; byUser: Record<string, number>
 }
+export interface ExpenseSplitResponse {
+  userId: number; amount: number
+}
+export interface SettlementResponse {
+  settlements: { fromUserId: number; toUserId: number; amount: number }[]
+}
 
 export interface TripJoinRequestResponse {
   id: number; tripId: number; userId: number; inviteCode: string

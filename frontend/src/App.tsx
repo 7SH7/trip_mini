@@ -13,8 +13,6 @@ import HomePage from './pages/HomePage'
 import TripsPage from './pages/trips/TripsPage'
 import TripDetailPage from './pages/trips/TripDetailPage'
 import CreateTripPage from './pages/trips/CreateTripPage'
-import BookingsPage from './pages/bookings/BookingsPage'
-import PaymentsPage from './pages/payments/PaymentsPage'
 import AccommodationsPage from './pages/accommodation/AccommodationsPage'
 import SubscriptionPage from './pages/subscription/SubscriptionPage'
 import FeedPage from './pages/feed/FeedPage'
@@ -102,8 +100,6 @@ export default function App() {
                 <Route path="/trips" element={<ProtectedRoute><TripsPage /></ProtectedRoute>} />
                 <Route path="/trips/new" element={<ProtectedRoute><CreateTripPage /></ProtectedRoute>} />
                 <Route path="/trips/:id" element={<ProtectedRoute><TripDetailPage /></ProtectedRoute>} />
-                <Route path="/bookings" element={<ProtectedRoute><BookingsPage /></ProtectedRoute>} />
-                <Route path="/payments" element={<ProtectedRoute><PaymentsPage /></ProtectedRoute>} />
                 <Route path="/accommodations" element={<ProtectedRoute><AccommodationsPage /></ProtectedRoute>} />
                 <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
                 <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />

@@ -3,7 +3,7 @@ import type {
   ApiResponse, TripResponse, CreateTripRequest,
   TripMemberResponse, InviteCodeResponse, TripScheduleResponse,
   TripPlaceResponse, TripExpenseResponse, ExpenseSummaryResponse,
-  TripJoinRequestResponse
+  TripJoinRequestResponse, ExpenseSplitResponse, SettlementResponse
 } from '../types'
 
 export const tripApi = {
@@ -55,4 +55,12 @@ export const tripApi = {
     client.post<ApiResponse<TripExpenseResponse>>(`/api/trips/${tripId}/expenses`, data),
   deleteExpense: (tripId: number, expenseId: number) =>
     client.delete(`/api/trips/${tripId}/expenses/${expenseId}`),
+
+  // Splits & Settlement
+  getSplits: (tripId: number, expenseId: number) =>
+    client.get<ApiResponse<ExpenseSplitResponse[]>>(`/api/trips/${tripId}/expenses/${expenseId}/splits`),
+  updateSplits: (tripId: number, expenseId: number, splits: { userId: number; amount: number }[]) =>
+    client.put<ApiResponse<ExpenseSplitResponse[]>>(`/api/trips/${tripId}/expenses/${expenseId}/splits`, { splits }),
+  getSettlement: (tripId: number) =>
+    client.get<ApiResponse<SettlementResponse>>(`/api/trips/${tripId}/expenses/settlement`),
 }

@@ -53,4 +53,24 @@ class TripExpenseController(
         expenseService.delete(tripId, expenseId, userId)
         return ApiResponse.ok(null)
     }
+
+    @Operation(summary = "지출별 멤버 부담금 조회")
+    @GetMapping("/{expenseId}/splits")
+    fun getSplits(@PathVariable expenseId: Long): ApiResponse<List<ExpenseSplitResponse>> =
+        ApiResponse.ok(expenseService.getSplits(expenseId))
+
+    @Operation(summary = "지출별 멤버 부담금 수정 (리더만)")
+    @PutMapping("/{expenseId}/splits")
+    fun updateSplits(
+        @PathVariable tripId: Long,
+        @PathVariable expenseId: Long,
+        @RequestHeader("X-User-Id") userId: Long,
+        @Valid @RequestBody request: UpdateSplitRequest
+    ): ApiResponse<List<ExpenseSplitResponse>> =
+        ApiResponse.ok(expenseService.updateSplits(tripId, expenseId, userId, request))
+
+    @Operation(summary = "최종 정산 결과 (누가 누구에게 얼마 보내야 하는지)")
+    @GetMapping("/settlement")
+    fun getSettlement(@PathVariable tripId: Long): ApiResponse<SettlementResponse> =
+        ApiResponse.ok(expenseService.getSettlement(tripId))
 }

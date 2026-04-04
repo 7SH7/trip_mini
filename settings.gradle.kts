@@ -3,8 +3,6 @@ rootProject.name = "trip"
 include("common")
 include("user-service")
 include("trip-service")
-include("booking-service")
-include("payment-service")
 include("eureka-server")
 include("api-gateway")
 include("proto")
